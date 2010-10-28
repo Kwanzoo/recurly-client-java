@@ -21,4 +21,9 @@ Dependencies
 
 This wrapper relies on the excellent [Jersey REST client API](https://jersey.dev.java.net/)
 
+Developed By
+-------------
+
+This code was developed by Manoj Mathai, GSLab, for Kwanzoo Inc.
+
 
