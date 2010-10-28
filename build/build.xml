@@ -1,0 +1,38 @@
+<project name="recurly-client-java" default="all" basedir="../">
+	<path id="build.classpath">
+        <fileset dir="${basedir}/libs">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+	
+	<target name="all" depends="build.jar" />
+	
+	<target name="build.jar" depends="init, clean, compile" >
+		<jar basedir="${dist.dir}/classes" destfile="${dist.dir}/recurly-client-java-${version}.jar" />
+		<delete dir="${dist.dir}/classes" includeemptydirs="true" failonerror="false" />
+	</target>
+    
+	<target name="init">
+    	<property name="dist.dir" value="${basedir}/dist" />	
+		<property name="src.dir" value="${basedir}/src" />
+		<property name="version" value="SNAPSHOT" />
+	</target>
+	
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false">
+            <fileset dir="${dist.dir}" includes="**/*" />
+		</delete>
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${dist.dir}/classes" />
+	</target>
+	
+	<target name="compile">
+        <javac srcdir="${src.dir}"
+           	destdir="${dist.dir}/classes"
+            debug="true"
+            includes="**/*.java"
+        	excludes="com/kwanzoo/recurly/test/**"
+       		classpathref="build.classpath"
+            verbose="yes" />
+    </target>	
+</project>
