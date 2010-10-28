@@ -39,24 +39,24 @@ public class RecurlyTest extends TestCase{
 		}
     }
 
-	//Create an account that doesn't exist and check if it can be found and check if the updates were applied correctly
+	//Manipulate Accounts
 	@Test public void test1() throws Exception{
 
 		//create fresh account
-		final String accountCode 	= getRandStr(5);
-		String username 			= getRandStr(5);
-		String firstName 			= getRandStr(5);
-		String lastName				= getRandStr(5);
-		String email 				= getRandStr(5)+"@site.com";
-		String companyName			= getRandStr(5);
+		final String accountCode = getRandStr(5);
+		String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName	= getRandStr(5);
+		String email = getRandStr(5)+"@site.com";
+		String companyName	= getRandStr(5);
 
 		Account account = new Account();
 
 		account.accountCode = accountCode;
-		account.username 	= username;
-		account.firstName 	= firstName;
-		account.lastName 	= lastName;
-		account.email 		= email;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
 		account.companyName	= companyName;
 
 		account.create();
@@ -72,16 +72,16 @@ public class RecurlyTest extends TestCase{
 		assertEquals(companyName, account.companyName);
 
 		//check if update works
-		username 		= getRandStr(5);
-		firstName 		= getRandStr(5);
-		lastName		= getRandStr(5);
-		email 			= getRandStr(5)+"@site.com";
-		companyName		= getRandStr(5);
+		username = getRandStr(5);
+		firstName = getRandStr(5);
+		lastName = getRandStr(5);
+		email = getRandStr(5)+"@site.com";
+		companyName	= getRandStr(5);
 
-		account.username 	= username;
-		account.firstName 	= firstName;
-		account.lastName 	= lastName;
-		account.email 		= email;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
 		account.companyName	= companyName;
 
 		account.update();
@@ -96,23 +96,24 @@ public class RecurlyTest extends TestCase{
 		assertEquals(companyName, account.companyName);
 	}
 
+	//Manipulate billing info
 	@Test public void test2() throws Exception{
 
 		//create fresh account
-		final String accountCode	= getRandStr(5);
-		final String username 		= getRandStr(5);
-		String firstName 			= getRandStr(5);
-		String lastName				= getRandStr(5);
-		final String email 			= getRandStr(5)+"@site.com";
-		final String companyName	= getRandStr(5);
+		final String accountCode = getRandStr(5);
+		final String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName	= getRandStr(5);
+		final String email = getRandStr(5)+"@site.com";
+		final String companyName = getRandStr(5);
 
 		Account account = new Account();
 
 		account.accountCode = accountCode;
-		account.username 	= username;
-		account.firstName 	= firstName;
-		account.lastName 	= lastName;
-		account.email 		= email;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
 		account.companyName	= companyName;
 
 		account.create();
@@ -120,38 +121,39 @@ public class RecurlyTest extends TestCase{
 		account = Account.get(accountCode);
 
 		//check if adding billing info for a fresh account works
-		final String number			= "1";
-		String verificationValue 	= getRandStr(4);
-		Integer expirationMonth 	= (new Random()).nextInt(12);
-		Integer expirationYear		= 2010 + (new Random()).nextInt(20);
+		final String number	= "1"; //bogus credit card number accepted by test gateway
+		String verificationValue = getRandStr(4);
+		Integer expirationMonth = (new Random()).nextInt(12) + 1;
+		Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
-		firstName			= account.firstName;
-		lastName 			= account.lastName;
-		String address1 	= getRandStr(10);
-		String address2 	= getRandStr(10);
-		String city 		= "San Fransisco";
-		String state  		= "CA";
-		String zip 			= "20240";
-		String country		= "US";
-		String ipAddress	= "127.0.0.1";
+		firstName = account.firstName;
+		lastName = account.lastName;
+		String address1 = getRandStr(10);
+		String address2 = getRandStr(10);
+		String city = "San Fransisco";
+		String state = "CA";
+		String zip = "20240";
+		String country = "US";
+		String ipAddress = "127.0.0.1";
 
 		CreditCard creditCard = new CreditCard();
+		
 		creditCard.number = number;
 		creditCard.verificationValue = verificationValue;
 		creditCard.expirationMonth = expirationMonth;
 		creditCard.expirationYear = expirationYear;
 
 		BillingInfo billingInfo = new BillingInfo(accountCode);
-		billingInfo.firstName	= firstName;
-		billingInfo.lastName 	= lastName;
-		billingInfo.address1 	= address1;
-		billingInfo.address2 	= address2;
-		billingInfo.city 		= city;
-		billingInfo.state  		= state;
-		billingInfo.zip 		= zip;
-		billingInfo.country		= country;
-		billingInfo.ipAddress	= ipAddress;
-		billingInfo.creditCard 	= creditCard;
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country	= country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.creditCard = creditCard;
 
 		billingInfo.update();
 
@@ -167,7 +169,7 @@ public class RecurlyTest extends TestCase{
 		assertEquals(country, billingInfo.country);
 		assertEquals(ipAddress, billingInfo.ipAddress);
 
-		//Recurly somehow returns empty for both the fields below
+		//Recurly returns empty for both the fields below
 		//assertEquals(billingInfo.creditCard.number);
 		//assertEquals(billingInfo.creditCard.verificationValue);
 
@@ -175,19 +177,19 @@ public class RecurlyTest extends TestCase{
 		assertEquals(expirationYear, billingInfo.creditCard.expirationYear);
 
 		//check if updating billing info of an account that already has billing info works
-		verificationValue 	= getRandStr(4);
-		expirationMonth 	= (new Random()).nextInt(12);
-		expirationYear		= 2010 + (new Random()).nextInt(20);
+		verificationValue = getRandStr(4);
+		expirationMonth = (new Random()).nextInt(12) + 1;
+		expirationYear = 2010 + (new Random()).nextInt(20);
 
-		firstName	= account.firstName;
-		lastName 	= account.lastName;
-		address1 	= getRandStr(10);
-		address2 	= getRandStr(10);
-		city 		= "Some City";
-		state  		= "NJ";
-		zip 		= "94105";
-		country		= "IN";
-		ipAddress	= "127.0.0.1";
+		firstName = account.firstName;
+		lastName = account.lastName;
+		address1 = getRandStr(10);
+		address2 = getRandStr(10);
+		city = "Some City";
+		state = "NJ";
+		zip = "94105";
+		country	= "IN";
+		ipAddress = "127.0.0.1";
 
 		creditCard = new CreditCard();
 		creditCard.number = number;
@@ -196,16 +198,16 @@ public class RecurlyTest extends TestCase{
 		creditCard.expirationYear = expirationYear;
 
 		billingInfo = new BillingInfo(accountCode);
-		billingInfo.firstName	= firstName;
-		billingInfo.lastName 	= lastName;
-		billingInfo.address1 	= address1;
-		billingInfo.address2 	= address2;
-		billingInfo.city 		= city;
-		billingInfo.state  		= state;
-		billingInfo.zip 		= zip;
-		billingInfo.country		= country;
-		billingInfo.ipAddress	= ipAddress;
-		billingInfo.creditCard 	= creditCard;
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country = country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.creditCard = creditCard;
 
 		billingInfo.checkedUpdate();
 
@@ -223,22 +225,23 @@ public class RecurlyTest extends TestCase{
 
 	}
 
+	//Manipulate subscriptions
 	@Test public void test3() throws Exception{
 		//create fresh account
-		final String accountCode	= getRandStr(5);
-		final String username 		= getRandStr(5);
-		String firstName 			= getRandStr(5);
-		String lastName				= getRandStr(5);
-		final String email 			= getRandStr(5)+"@site.com";
-		final String companyName	= getRandStr(5);
+		final String accountCode = getRandStr(5);
+		final String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName	= getRandStr(5);
+		final String email = getRandStr(5)+"@site.com";
+		final String companyName = getRandStr(5);
 
 		Account account = new Account();
 
 		account.accountCode = accountCode;
-		account.username 	= username;
-		account.firstName 	= firstName;
-		account.lastName 	= lastName;
-		account.email 		= email;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
 		account.companyName	= companyName;
 
 		account.create();
@@ -246,20 +249,21 @@ public class RecurlyTest extends TestCase{
 		account = Account.get(accountCode);
 
 		//subscribe to plan1
-		final String number				= "1";
-		final String verificationValue 	= getRandStr(4);
-		final Integer expirationMonth 	= (new Random()).nextInt(12);
-		final Integer expirationYear	= 2010 + (new Random()).nextInt(20);
+		final String number	= "1";
+		final String verificationValue = getRandStr(4);
+		final Integer expirationMonth = (new Random()).nextInt(12);
+		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
-		firstName				= account.firstName;
-		lastName 				= account.lastName;
-		final String address1 	= getRandStr(10);
-		final String address2 	= getRandStr(10);
-		final String city 		= "San Fransisco";
-		final String state  	= "NM";
-		final String zip 		= "99546";
-		final String country	= "US";
-		final String ipAddress	= "127.0.0.1";
+		firstName = account.firstName;
+		lastName = account.lastName;
+		
+		final String address1 = getRandStr(10);
+		final String address2 = getRandStr(10);
+		final String city = "San Fransisco";
+		final String state = "NM";
+		final String zip = "99546";
+		final String country = "US";
+		final String ipAddress = "127.0.0.1";
 
 		final CreditCard creditCard = new CreditCard();
 		creditCard.number = number;
@@ -268,20 +272,20 @@ public class RecurlyTest extends TestCase{
 		creditCard.expirationYear = expirationYear;
 
 		BillingInfo billingInfo = new BillingInfo(accountCode);
-		billingInfo.firstName	= firstName;
-		billingInfo.lastName 	= lastName;
-		billingInfo.address1 	= address1;
-		billingInfo.address2 	= address2;
-		billingInfo.city 		= city;
-		billingInfo.state  		= state;
-		billingInfo.zip 		= zip;
-		billingInfo.country		= country;
-		billingInfo.ipAddress	= ipAddress;
-		billingInfo.creditCard 	= creditCard;
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country	= country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.creditCard = creditCard;
 
 		account.billingInfo = billingInfo;
 
-		String planCode = "testplan1";
+		String planCode = "testplan1"; //one of the plans defined in your recurly account
 		Integer quantity = 1;
 
 		Subscription subscription = new Subscription(accountCode);
@@ -310,7 +314,7 @@ public class RecurlyTest extends TestCase{
 		assertEquals(country, billingInfo.country);
 		assertEquals(ipAddress, billingInfo.ipAddress);
 
-		//Recurly somehow returns a null for both the fields below, probably for security purposes.
+		//Recurly returns a null for both the fields below.
 		//assertEquals(billingInfo.creditCard.number);
 		//assertEquals(billingInfo.creditCard.verificationValue);
 
@@ -319,7 +323,7 @@ public class RecurlyTest extends TestCase{
 
 		//downgrade check
 
-		planCode = "testplan0";
+		planCode = "testplan0"; // a plan with lesser features/rate than testplan1
 		quantity = 2;
 
 		subscription = new Subscription(accountCode);
@@ -338,11 +342,11 @@ public class RecurlyTest extends TestCase{
 
 		//upgrade check
 
-		planCode = "testplan2";
+		planCode = "testplan2"; // a plan with better features/rate than testplan1
 		quantity = 3;
 
 		subscription = new Subscription(accountCode);
-		subscription.timeframe = "now";
+		subscription.timeframe = "now"; //immediate upgrade
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
 
@@ -362,7 +366,5 @@ public class RecurlyTest extends TestCase{
 
 		subscription = Subscription.get(accountCode);
 		assertEquals("canceled", subscription.state);
-
-
 	}
 }
