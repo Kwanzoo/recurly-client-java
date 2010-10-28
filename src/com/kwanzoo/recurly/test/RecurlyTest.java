@@ -124,7 +124,7 @@ public class RecurlyTest extends TestCase{
 		final String number	= "1"; //bogus credit card number accepted by test gateway
 		String verificationValue = getRandStr(4);
 		Integer expirationMonth = (new Random()).nextInt(12) + 1;
-		Integer expirationYear = 2011 + (new Random()).nextInt(20);
+		Integer expirationYear = 2012 + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
@@ -179,7 +179,7 @@ public class RecurlyTest extends TestCase{
 		//check if updating billing info of an account that already has billing info works
 		verificationValue = getRandStr(4);
 		expirationMonth = (new Random()).nextInt(12) + 1;
-		expirationYear = 2010 + (new Random()).nextInt(20);
+		expirationYear = 2012 + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
