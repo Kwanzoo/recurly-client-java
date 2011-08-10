@@ -7,13 +7,13 @@ The Recurly Java Client library is an open source wrapper library to talk to Rec
 Usage
 -----
 
-Please refer to the JUnit test cases in [RecurlyTest](https://github.com/thobach/recurly-client-java/blob/master/src/com/kwanzoo/recurly/test/RecurlyTest.java)
+Please refer to the JUnit test cases in [RecurlyTest](https://github.com/Kwanzoo/recurly-client-java/blob/master/src/com/kwanzoo/recurly/test/RecurlyTest.java)
 
 
 Installation
 ------------
 
-Just add the latest jar(under [dist/](https://github.com/thobach/recurly-client-java/blob/master/dist/recurly-client-java-SNAPSHOT.jar)) to your classpath.
+Just add the latest jar(under [dist/](https://github.com/Kwanzoo/recurly-client-java/blob/master/dist/recurly-client-java-SNAPSHOT.jar)) to your classpath.
 
 
 Dependencies

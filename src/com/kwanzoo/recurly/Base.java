@@ -102,7 +102,7 @@ public abstract class Base{
 	}
 
 	//Translates a recurly response to an appropriate recurly exception object.
-	public static void throwStatusBasedException(final ClientResponse response) throws Exception{
+	public static void throwStatusBasedException(final ClientResponse response) throws com.kwanzoo.recurly.exception.Base{
 		final ClientResponse.Status status = response.getClientResponseStatus();
 		if(status == null){
 			final int statusCode = response.getStatus();

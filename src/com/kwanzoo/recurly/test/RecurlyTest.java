@@ -2,6 +2,9 @@ package com.kwanzoo.recurly.test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
@@ -22,29 +25,42 @@ import com.kwanzoo.recurly.TransparentResult;
 
 public class RecurlyTest extends TestCase {
 
-	private String plan1 = "test_plan1";
-	private String plan2 = "test_plan2";
-	private String plan3 = "test_plan3";
-
+	private String[] plans = {};
 	private String existingTransparentPostResult = "";
+	private int currentYear = 0;
 
-	private String getRandStr(final int n) {
+	private String getRandomAlphaNumString(final int n) {
 		return RandomStringUtils.randomAlphanumeric(n);
 	}
 
-	private String getRandNumber(final int n) {
+	private String getRandomNumString(final int n) {
 		return RandomStringUtils.randomNumeric(n);
 	}
 
 	@Override
 	public void setUp() {
-		Properties p = new Properties();
+		Properties props = new Properties();
 		try {
-			p.load(new FileInputStream(System.getProperty("user.home") + "/" + "recurly_auth"));
-			String username = p.getProperty("recurly_username");
-			String password = p.getProperty("recurly_password");
+			String propsFilePath = System.getProperty("user.home") + "/" + "recurly_auth";
+			System.out.println("Reading properties from " + propsFilePath);
+			props.load(new FileInputStream(propsFilePath));
+			
+			String username = props.getProperty("recurly_username");
+			String password = props.getProperty("recurly_password");
+			System.out.println("Using recurly credentials : " + username + "/" + password);
+			
+			String plansStr = props.getProperty("plans");
+			plans = plansStr.split(",");
+			for(int i=0;i<plans.length;i++){
+				plans[i] = plans[i].trim();
+			}
+			System.out.println("Using plans : " + Arrays.toString(plans));
+			
+			currentYear = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
+			
 			Base.setAuth(username, password);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -64,12 +80,12 @@ public class RecurlyTest extends TestCase {
 	public void test1() throws Exception {
 
 		// create fresh account
-		final String accountCode = getRandStr(5);
-		String username = getRandStr(5);
-		String firstName = getRandStr(5);
-		String lastName = getRandStr(5);
-		String email = getRandStr(5) + "@site.com";
-		String companyName = getRandStr(5);
+		final String accountCode = getRandomAlphaNumString(5);
+		String username = getRandomAlphaNumString(5);
+		String firstName = getRandomAlphaNumString(5);
+		String lastName = getRandomAlphaNumString(5);
+		String email = getRandomAlphaNumString(5) + "@site.com";
+		String companyName = getRandomAlphaNumString(5);
 
 		Account account = new Account();
 
@@ -93,11 +109,11 @@ public class RecurlyTest extends TestCase {
 		assertEquals(companyName, account.companyName);
 
 		// check if update works
-		username = getRandStr(5);
-		firstName = getRandStr(5);
-		lastName = getRandStr(5);
-		email = getRandStr(5) + "@site.com";
-		companyName = getRandStr(5);
+		username = getRandomAlphaNumString(5);
+		firstName = getRandomAlphaNumString(5);
+		lastName = getRandomAlphaNumString(5);
+		email = getRandomAlphaNumString(5) + "@site.com";
+		companyName = getRandomAlphaNumString(5);
 
 		account.username = username;
 		account.firstName = firstName;
@@ -130,12 +146,12 @@ public class RecurlyTest extends TestCase {
 	public void test2() throws Exception {
 
 		// create fresh account
-		final String accountCode = getRandStr(5);
-		final String username = getRandStr(5);
-		String firstName = getRandStr(5);
-		String lastName = getRandStr(5);
-		final String email = getRandStr(5) + "@site.com";
-		final String companyName = getRandStr(5);
+		final String accountCode = getRandomAlphaNumString(5);
+		final String username = getRandomAlphaNumString(5);
+		String firstName = getRandomAlphaNumString(5);
+		String lastName = getRandomAlphaNumString(5);
+		final String email = getRandomAlphaNumString(5) + "@site.com";
+		final String companyName = getRandomAlphaNumString(5);
 
 		Account account = new Account();
 
@@ -152,14 +168,14 @@ public class RecurlyTest extends TestCase {
 
 		// check if adding billing info for a fresh account works
 		final String number = "1"; // bogus credit card number accepted by test gateway
-		String verificationValue = getRandNumber(4);
+		String verificationValue = getRandomNumString(4);
 		Integer expirationMonth = (new Random()).nextInt(12) + 1;
-		Integer expirationYear = 2012 + (new Random()).nextInt(20);
+		Integer expirationYear = currentYear + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
-		String address1 = getRandStr(10);
-		String address2 = getRandStr(10);
+		String address1 = getRandomAlphaNumString(10);
+		String address2 = getRandomAlphaNumString(10);
 		String city = "San Fransisco";
 		String state = "CA";
 		String zip = "20240";
@@ -207,14 +223,15 @@ public class RecurlyTest extends TestCase {
 		assertEquals(expirationYear, billingInfo.creditCard.expirationYear);
 
 		// check if updating billing info of an account that already has billing info works
-		verificationValue = getRandNumber(4);
+		verificationValue = getRandomNumString(4);
 		expirationMonth = (new Random()).nextInt(12) + 1;
-		expirationYear = 2012 + (new Random()).nextInt(20);
+		
+		expirationYear = currentYear + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
-		address1 = getRandStr(10);
-		address2 = getRandStr(10);
+		address1 = getRandomAlphaNumString(10);
+		address2 = getRandomAlphaNumString(10);
 		city = "Some City";
 		state = "NJ";
 		zip = "94105";
@@ -262,12 +279,12 @@ public class RecurlyTest extends TestCase {
 	@Test
 	public void test3() throws Exception {
 		// create fresh account
-		final String accountCode = getRandStr(5);
-		final String username = getRandStr(5);
-		String firstName = getRandStr(5);
-		String lastName = getRandStr(5);
-		final String email = getRandStr(5) + "@site.com";
-		final String companyName = getRandStr(5);
+		final String accountCode = getRandomAlphaNumString(5);
+		final String username = getRandomAlphaNumString(5);
+		String firstName = getRandomAlphaNumString(5);
+		String lastName = getRandomAlphaNumString(5);
+		final String email = getRandomAlphaNumString(5) + "@site.com";
+		final String companyName = getRandomAlphaNumString(5);
 
 		Account account = new Account();
 
@@ -284,15 +301,15 @@ public class RecurlyTest extends TestCase {
 
 		// subscribe to plan1
 		final String number = "1";
-		final String verificationValue = getRandNumber(4);
+		final String verificationValue = getRandomNumString(4);
 		final Integer expirationMonth = (new Random()).nextInt(12);
 		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
 
-		final String address1 = getRandStr(10);
-		final String address2 = getRandStr(10);
+		final String address1 = getRandomAlphaNumString(10);
+		final String address2 = getRandomAlphaNumString(10);
 		final String city = "San Fransisco";
 		final String state = "NM";
 		final String zip = "99546";
@@ -319,7 +336,7 @@ public class RecurlyTest extends TestCase {
 
 		account.billingInfo = billingInfo;
 
-		String planCode = plan2; // one of the plans defined in your recurly account
+		String planCode = plans[1]; // one of the plans defined in your recurly account
 		Integer quantity = 1;
 
 		Subscription subscription = new Subscription(accountCode);
@@ -361,7 +378,7 @@ public class RecurlyTest extends TestCase {
 
 		// downgrade check
 
-		planCode = plan1; // a plan with lesser features/rate than testplan1
+		planCode = plans[0]; // a plan with lesser features/rate than testplan1
 		quantity = 2;
 
 		subscription = new Subscription(accountCode);
@@ -384,7 +401,7 @@ public class RecurlyTest extends TestCase {
 
 		// upgrade check
 
-		planCode = plan3; // a plan with better features/rate than testplan1
+		planCode = plans[2]; // a plan with better features/rate than testplan1
 		quantity = 3;
 
 		subscription = new Subscription(accountCode);
