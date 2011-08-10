@@ -92,6 +92,10 @@ public abstract class Base{
 		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.APPLICATION_XML_TYPE);
 	}
 	
+	public static WebResource.Builder getWebResourceBuilderHtml(final String path) {
+		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.TEXT_HTML);
+	}
+
 	//This method needs to be invoked only once, just before performing the first recurly operation
 	public static void setAuth(final String recurlyUsername, final String recurlyPassword){
 		base64AuthStr = new String(Base64.encode(recurlyUsername + ":" + recurlyPassword));
