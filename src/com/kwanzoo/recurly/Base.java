@@ -3,6 +3,7 @@ package com.kwanzoo.recurly;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
@@ -30,7 +31,10 @@ import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.Base64;
 
 public abstract class Base{
-	private static final String BaseURI = "https://app.recurly.com";
+	private static String protocol = "https://";
+	private static String subdomain = "app";
+	private static String domain = "recurly.com";
+	//private static String BaseURI = protocol + subdomain + "." + domain;
 	private static final WebResource webResource;
 	private static String base64AuthStr = "";
 	private static final int UNPROCESSABLE_ENTITY_HTTP_CODE = 422;
@@ -72,6 +76,10 @@ public abstract class Base{
         }
         return context;
 	}
+	
+	private static String getBaseURI() {
+		return protocol + subdomain + "." + domain;
+	}
 
 	private static HostnameVerifier getHostNameVerifier(){
 		return new HostnameVerifier() {
@@ -85,7 +93,7 @@ public abstract class Base{
 	private static WebResource getNewWebResource(){
 		final ClientConfig config = new DefaultClientConfig();
 		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(getHostNameVerifier(), getSSLContext()));
-        return Client.create(config).resource(BaseURI);
+        return Client.create(config).resource(getBaseURI());
 	}
 
 	public static WebResource.Builder getWebResourceBuilder(final String path){
@@ -97,7 +105,8 @@ public abstract class Base{
 	}
 
 	//This method needs to be invoked only once, just before performing the first recurly operation
-	public static void setAuth(final String recurlyUsername, final String recurlyPassword){
+	public static void setAuth(final String recurlySubdomain, final String recurlyUsername, final String recurlyPassword){
+		subdomain = recurlySubdomain;
 		base64AuthStr = new String(Base64.encode(recurlyUsername + ":" + recurlyPassword));
 	}
 
@@ -145,6 +154,7 @@ public abstract class Base{
 	
 	protected abstract String getResourcePath();
 	protected abstract String getResourceCreationPath(); 
+	
 	
 	//default implementations for create, update and delete operation on a resource.
 	//read operations are static methods within respective resource classes.

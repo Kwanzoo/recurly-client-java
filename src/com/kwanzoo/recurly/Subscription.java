@@ -1,8 +1,10 @@
 package com.kwanzoo.recurly;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.sun.jersey.api.client.GenericType;
@@ -32,6 +34,10 @@ public class Subscription extends Base{
 	
 	@XmlElement(name="plan") 						
 	public Plan plan;
+	
+	@XmlElementWrapper(name = "add_ons")
+	@XmlElement(name = "add_on") 						
+	public List<AddOn> addOns;
 	
 	@XmlElement(name="state") 						
 	public String state;
