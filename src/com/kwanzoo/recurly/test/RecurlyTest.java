@@ -2,6 +2,7 @@ package com.kwanzoo.recurly.test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
@@ -285,7 +286,7 @@ public class RecurlyTest extends TestCase {
 		// subscribe to plan1
 		final String number = "1";
 		final String verificationValue = getRandNumber(4);
-		final Integer expirationMonth = (new Random()).nextInt(12);
+		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
 		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
@@ -420,6 +421,105 @@ public class RecurlyTest extends TestCase {
 		assertEquals("canceled", subscription.state);
 
 		account.delete();
+	}
+
+	public void test4() throws Exception {
+		// create account with subscription, terminate subscription without refund, create new subscription for same
+		// account
+
+		// create fresh account
+		final String accountCode = getRandStr(5);
+		final String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName = getRandStr(5);
+		final String email = getRandStr(5) + "@site.com";
+		final String companyName = getRandStr(5);
+
+		Account account = new Account();
+
+		account.accountCode = accountCode;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
+		account.companyName = companyName;
+
+		account.create();
+
+		account = Account.get(accountCode);
+
+		// subscribe to plan1
+		final String number = "1";
+		final String verificationValue = getRandNumber(4);
+		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
+		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
+
+		final String address1 = getRandStr(10);
+		final String address2 = getRandStr(10);
+		final String city = "San Fransisco";
+		final String state = "NM";
+		final String zip = "99546";
+		final String country = "US";
+		final String ipAddress = "127.0.0.1";
+
+		final CreditCard creditCard = new CreditCard();
+		creditCard.number = number;
+		creditCard.verificationValue = verificationValue;
+		creditCard.expirationMonth = expirationMonth;
+		creditCard.expirationYear = expirationYear;
+
+		BillingInfo billingInfo = new BillingInfo(accountCode);
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country = country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.creditCard = creditCard;
+
+		account.billingInfo = billingInfo;
+
+		String planCode = plan1; // one of the plans defined in your recurly account
+		Integer quantity = 1;
+
+		Subscription subscription = new Subscription(accountCode);
+		subscription.account = account;
+		subscription.planCode = planCode;
+		subscription.quantity = quantity;
+		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (45L * 24L * 60L * 60L * 1000L));
+
+		subscription.create();
+
+		subscription = Subscription.get(accountCode);
+		Date trialEndDate1 = subscription.trialEndsAt;
+
+		subscription.delete("refund", "none");
+
+		try{
+			Subscription.get(accountCode);
+			fail("Exception should be thrown, since subscription is not existing.");
+		} catch (Exception e) {
+			// ignore
+		}
+
+		subscription = new Subscription(accountCode);
+		subscription.account = account;
+		subscription.planCode = planCode;
+		subscription.quantity = quantity;
+		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (30L * 24L * 60L * 60L * 1000L));
+		subscription.create();
+
+		subscription = Subscription.get(accountCode);
+
+		assertNotNull(Subscription.get(accountCode));
+		assertTrue(subscription.trialEndsAt.before(trialEndDate1));
+
+		// cleanup
+		account.delete();
+
 	}
 
 }

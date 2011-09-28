@@ -92,6 +92,12 @@ public abstract class Base{
 		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.APPLICATION_XML_TYPE);
 	}
 	
+	public static WebResource.Builder getWebResourceBuilder(final String path, final String paramKey,
+			final String paramValue) {
+		return webResource.path(path).queryParam(paramKey, paramValue).header("Authorization", base64AuthStr)
+				.accept(MediaType.APPLICATION_XML_TYPE);
+	}
+
 	public static WebResource.Builder getWebResourceBuilderHtml(final String path) {
 		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.TEXT_HTML);
 	}
@@ -174,4 +180,19 @@ public abstract class Base{
     		throwStatusBasedException(uie.getResponse());
     	}
     }
+
+	/**
+	 * Delete with the option to pass an additional key value pair, that will be appended to the resource path
+	 * 
+	 * @param paramKey
+	 * @param paramValue
+	 * @throws Exception
+	 */
+	public void delete(String paramKey, String paramValue) throws Exception {
+		try {
+			getWebResourceBuilder(getResourcePath(), paramKey, paramValue).delete(this);
+		} catch (final UniformInterfaceException uie) {
+			throwStatusBasedException(uie.getResponse());
+		}
+	}
 }
