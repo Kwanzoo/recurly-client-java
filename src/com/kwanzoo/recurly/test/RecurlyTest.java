@@ -360,6 +360,12 @@ public class RecurlyTest extends TestCase {
 		Invoices invoices = Invoices.get(accountCode);
 		assertEquals(1, invoices.invoice.size());
 
+		// invoice check with pages
+		invoices = Invoices.get(accountCode, 1);
+		assertEquals(1, invoices.invoice.size());
+		Invoices emptyInvoices = Invoices.get(accountCode, 2);
+		assertNull(emptyInvoices.invoice);
+
 		// downgrade check
 
 		planCode = plan1; // a plan with lesser features/rate than testplan1

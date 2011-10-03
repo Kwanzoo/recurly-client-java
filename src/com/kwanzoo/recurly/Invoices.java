@@ -42,4 +42,13 @@ public class Invoices extends Base {
 			return null;
 		}
 	}
+
+	public static Invoices get(final String accountCode, final int page) throws Exception {
+		try {
+			return getWebResourceBuilder(getResourcePath(accountCode), "page", page + "").get(Invoices.class);
+		} catch (final UniformInterfaceException uie) {
+			throwStatusBasedException(uie.getResponse());
+			return null;
+		}
+	}
 }
