@@ -2,7 +2,9 @@ package com.kwanzoo.recurly.test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -12,6 +14,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 
 import com.kwanzoo.recurly.Account;
+import com.kwanzoo.recurly.Addon;
 import com.kwanzoo.recurly.Base;
 import com.kwanzoo.recurly.BillingInfo;
 import com.kwanzoo.recurly.Charge;
@@ -26,6 +29,7 @@ public class RecurlyTest extends TestCase {
 	private String plan1 = "test_plan1";
 	private String plan2 = "test_plan2";
 	private String plan3 = "test_plan3";
+	private String addonCode = "testAddon";
 
 	private String existingTransparentPostResult = "";
 
@@ -418,6 +422,38 @@ public class RecurlyTest extends TestCase {
 		assertEquals(1, invoiceDetailed.payment.size());
 		assertEquals(1, invoiceDetailed.line_item.size());
 
+		// addon check
+
+		planCode = plan3; // a plan with better features/rate than testplan1
+		quantity = 1;
+		int addonQuantity = 2;
+		int unitAmountInCents = 595;
+		Addon addon = new Addon();
+		addon.addOnCode = addonCode;
+		addon.quantity = addonQuantity;
+		addon.unitAmountInCents = unitAmountInCents;
+		List<Addon> addons = new ArrayList<Addon>();
+		addons.add(addon);
+
+		subscription = new Subscription(accountCode);
+		subscription.timeframe = "now"; // immediate upgrade
+		subscription.planCode = planCode;
+		subscription.quantity = quantity;
+		subscription.addOns = addons;
+
+		subscription.update();
+
+		subscription = Subscription.get(accountCode);
+
+		assertEquals(accountCode, subscription.accountCode);
+		assertEquals(planCode, subscription.plan.planCode);
+		assertEquals("active", subscription.state);
+		assertEquals(quantity, subscription.quantity);
+		assertEquals(1, subscription.addOns.size());
+		assertEquals(Integer.valueOf(addonQuantity), subscription.addOns.get(0).quantity);
+		assertEquals(Integer.valueOf(unitAmountInCents), subscription.addOns.get(0).unitAmountInCents);
+		assertEquals(addonCode, subscription.addOns.get(0).addOnCode);
+
 		// cancel & check with asserts
 
 		subscription = new Subscription(accountCode);
@@ -504,7 +540,7 @@ public class RecurlyTest extends TestCase {
 
 		subscription.delete("refund", "none");
 
-		try{
+		try {
 			Subscription.get(accountCode);
 			fail("Exception should be thrown, since subscription is not existing.");
 		} catch (Exception e) {
