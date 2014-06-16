@@ -22,7 +22,6 @@ import com.kwanzoo.recurly.CreditCard;
 import com.kwanzoo.recurly.InvoiceDetailed;
 import com.kwanzoo.recurly.Invoices;
 import com.kwanzoo.recurly.Subscription;
-import com.kwanzoo.recurly.TransparentResult;
 
 public class RecurlyTest extends TestCase {
 
@@ -30,8 +29,6 @@ public class RecurlyTest extends TestCase {
 	private String plan2 = "test_plan2";
 	private String plan3 = "test_plan3";
 	private String addonCode = "testAddon";
-
-	private String existingTransparentPostResult = "";
 
 	private String getRandStr(final int n) {
 		return RandomStringUtils.randomAlphanumeric(n);
@@ -51,16 +48,6 @@ public class RecurlyTest extends TestCase {
 			Base.setAuth(username, password);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-	}
-
-	@Test
-	public void test0() throws Exception {
-		if (!"".equals(existingTransparentPostResult)) {
-			Subscription result = TransparentResult.get(existingTransparentPostResult);
-			assertEquals("pending", result.state);
-		} else {
-			fail("create a transparent post demo and setup the transparent post result");
 		}
 	}
 
@@ -157,7 +144,7 @@ public class RecurlyTest extends TestCase {
 
 		// check if adding billing info for a fresh account works
 		final String number = "1"; // bogus credit card number accepted by test gateway
-		String verificationValue = getRandNumber(4);
+		String verificationValue = getRandNumber(3);
 		Integer expirationMonth = (new Random()).nextInt(12) + 1;
 		Integer expirationYear = 2012 + (new Random()).nextInt(20);
 
@@ -212,7 +199,7 @@ public class RecurlyTest extends TestCase {
 		assertEquals(expirationYear, billingInfo.creditCard.expirationYear);
 
 		// check if updating billing info of an account that already has billing info works
-		verificationValue = getRandNumber(4);
+		verificationValue = getRandNumber(3);
 		expirationMonth = (new Random()).nextInt(12) + 1;
 		expirationYear = 2012 + (new Random()).nextInt(20);
 
@@ -289,7 +276,7 @@ public class RecurlyTest extends TestCase {
 
 		// subscribe to plan1
 		final String number = "1";
-		final String verificationValue = getRandNumber(4);
+		final String verificationValue = getRandNumber(3);
 		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
 		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
@@ -492,7 +479,7 @@ public class RecurlyTest extends TestCase {
 
 		// subscribe to plan1
 		final String number = "1";
-		final String verificationValue = getRandNumber(4);
+		final String verificationValue = getRandNumber(3);
 		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
 		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
 
