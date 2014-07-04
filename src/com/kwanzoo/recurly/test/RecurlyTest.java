@@ -58,7 +58,7 @@ public class RecurlyTest extends TestCase {
 			
 			currentYear = Integer.parseInt(new SimpleDateFormat("yyyy").format(new Date()));
 			
-			Base.setAuth(username, password);
+			Base.setAuth("app", username, password);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
