@@ -7,13 +7,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 
-@XmlRootElement(name = "invoices")
-public class Invoices extends Base {
+@XmlRootElement(name = "subscriptions")
+public class Subscriptions extends Base {
 
-	private static String resourceName = "invoices";
+	private static String resourceName = "subscriptions";
 
-	@XmlElement(name = "invoice")
-	public List<Invoice> invoice;
+	@XmlElement(name = "subscription")
+	public List<Subscription> subscription;
 
 	public String account_code;
 
@@ -31,21 +31,21 @@ public class Invoices extends Base {
 		return getResourcePath();
 	}
 
-	public Invoices() {
+	public Subscriptions() {
 	}
 
-	public static Invoices get(final String accountCode) throws Exception {
+	public static Subscriptions get(final String accountCode) throws Exception {
 		try {
-			return getWebResourceBuilder(getResourcePath(accountCode)).get(Invoices.class);
+			return getWebResourceBuilder(getResourcePath(accountCode)).get(Subscriptions.class);
 		} catch (final UniformInterfaceException uie) {
 			throwStatusBasedException(uie.getResponse());
 			return null;
 		}
 	}
 
-	public static Invoices get(final String accountCode, final int limit) throws Exception {
+	public static Subscriptions get(final String accountCode, final int page) throws Exception {
 		try {
-			return getWebResourceBuilder(getResourcePath(accountCode), "per_page", limit + "").get(Invoices.class);
+			return getWebResourceBuilder(getResourcePath(accountCode), "page", page + "").get(Subscriptions.class);
 		} catch (final UniformInterfaceException uie) {
 			throwStatusBasedException(uie.getResponse());
 			return null;

@@ -29,69 +29,70 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.Base64;
 
-public abstract class Base{
-	private static final String BaseURI = "https://app.recurly.com";
-	private static final WebResource webResource;
+public abstract class Base {
+
+	private static String baseURI = "https://[subdomain].recurly.com/v2";
+	private static WebResource webResource = null;
 	private static String base64AuthStr = "";
 	private static final int UNPROCESSABLE_ENTITY_HTTP_CODE = 422;
-	
-	static{
-		webResource = getNewWebResource();
-	}
-	
-	private static TrustManager[] getTrustManager(){
+
+	private static TrustManager[] getTrustManager() {
 		final X509TrustManager trustManager = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
-                return;
-            }
 
-            @Override
-            public void checkServerTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
-                return;
-            }
+			@Override
+			public void checkClientTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
+				return;
+			}
 
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-        };
-        return new TrustManager[] {trustManager};
+			@Override
+			public void checkServerTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
+				return;
+			}
+
+			@Override
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+		};
+		return new TrustManager[] { trustManager };
 	}
 
-	private static SSLContext getSSLContext(){
+	private static SSLContext getSSLContext() {
 		SSLContext context = null;
 
-        try {
-            context = SSLContext.getInstance("SSL");
-            context.init(null, getTrustManager(), null);
-        }
-        catch (final Exception e) {
-        	context = null;
-        	e.printStackTrace();
-        }
-        return context;
+		try {
+			context = SSLContext.getInstance("SSL");
+			context.init(null, getTrustManager(), null);
+		} catch (final Exception e) {
+			context = null;
+			e.printStackTrace();
+		}
+		return context;
 	}
 
-	private static HostnameVerifier getHostNameVerifier(){
+	private static HostnameVerifier getHostNameVerifier() {
 		return new HostnameVerifier() {
-            @Override
-            public boolean verify(final String hostname, final SSLSession sslSession) {
-                return true;
-            }
-        };
+
+			@Override
+			public boolean verify(final String hostname, final SSLSession sslSession) {
+				return true;
+			}
+		};
 	}
 
-	private static WebResource getNewWebResource(){
+	private static WebResource getNewWebResource() {
 		final ClientConfig config = new DefaultClientConfig();
-		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(getHostNameVerifier(), getSSLContext()));
-        return Client.create(config).resource(BaseURI);
+		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
+				new HTTPSProperties(getHostNameVerifier(), getSSLContext()));
+		WebResource client = Client.create(config).resource(baseURI);
+		return client;
 	}
 
-	public static WebResource.Builder getWebResourceBuilder(final String path){
-		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.APPLICATION_XML_TYPE);
+	public static WebResource.Builder getWebResourceBuilder(final String path) {
+		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.APPLICATION_XML_TYPE)
+				.header("Content-Type", "application/xml; charset=utf-8");
 	}
-	
+
 	public static WebResource.Builder getWebResourceBuilder(final String path, final String paramKey,
 			final String paramValue) {
 		return webResource.path(path).queryParam(paramKey, paramValue).header("Authorization", base64AuthStr)
@@ -102,84 +103,75 @@ public abstract class Base{
 		return webResource.path(path).header("Authorization", base64AuthStr).accept(MediaType.TEXT_HTML);
 	}
 
-	//This method needs to be invoked only once, just before performing the first recurly operation
-	public static void setAuth(final String recurlyUsername, final String recurlyPassword){
-		base64AuthStr = new String(Base64.encode(recurlyUsername + ":" + recurlyPassword));
+	// This method needs to be invoked only once, just before performing the first recurly operation
+	public static void setAuth(final String recurlyApiKey, final String recurlySubdomain) {
+		baseURI = baseURI.replace("[subdomain]", recurlySubdomain);
+		base64AuthStr = new String(Base64.encode(recurlyApiKey));
+		webResource = getNewWebResource();
 	}
 
-	//Translates a recurly response to an appropriate recurly exception object.
-	public static void throwStatusBasedException(final ClientResponse response) throws Exception{
+	// Translates a recurly response to an appropriate recurly exception object.
+	public static void throwStatusBasedException(final ClientResponse response) throws Exception {
 		final ClientResponse.Status status = response.getClientResponseStatus();
-		if(status == null){
+		if (status == null) {
 			final int statusCode = response.getStatus();
-			if(UNPROCESSABLE_ENTITY_HTTP_CODE == statusCode){
-				System.out.println(response.getEntity(String.class));
+			if (UNPROCESSABLE_ENTITY_HTTP_CODE == statusCode) {
+				// System.out.println(response.getEntity(String.class));
 				throw new UnprocessableEntityException(response);
-			}
-			else{
-				System.out.println("ClientResponseStatus is null, but found status Code = " + UNPROCESSABLE_ENTITY_HTTP_CODE);
+			} else {
+				System.out.println("ClientResponseStatus is null, but found status Code = "
+						+ UNPROCESSABLE_ENTITY_HTTP_CODE);
 				throw new UnknownRecurlyException(response);
 			}
-		}
-		else{
-			if(status.equals(ClientResponse.Status.BAD_REQUEST)){
+		} else {
+			if (status.equals(ClientResponse.Status.BAD_REQUEST)) {
 				throw new BadRequestException(response);
-			}
-			else if(status.equals(ClientResponse.Status.UNAUTHORIZED)){
+			} else if (status.equals(ClientResponse.Status.UNAUTHORIZED)) {
 				throw new UnauthorizedAccessException(response);
-			}
-			else if(status.equals(ClientResponse.Status.PAYMENT_REQUIRED)){
+			} else if (status.equals(ClientResponse.Status.PAYMENT_REQUIRED)) {
 				throw new PaymentRequiredException(response);
-			}
-			else if(status.equals(ClientResponse.Status.FORBIDDEN)){
+			} else if (status.equals(ClientResponse.Status.FORBIDDEN)) {
 				throw new ForbiddenAccessException(response);
-			}
-			else if(status.equals(ClientResponse.Status.NOT_FOUND)){
+			} else if (status.equals(ClientResponse.Status.NOT_FOUND)) {
 				throw new ResourceNotFoundException(response);
-			}
-			else if(status.equals(ClientResponse.Status.PRECONDITION_FAILED)){
+			} else if (status.equals(ClientResponse.Status.PRECONDITION_FAILED)) {
 				throw new PreconditionFailedException(response);
-			}
-			else if(status.equals(ClientResponse.Status.INTERNAL_SERVER_ERROR)){
+			} else if (status.equals(ClientResponse.Status.INTERNAL_SERVER_ERROR)) {
 				throw new InternalServerErrorException(response);
-			}
-			else if(status.equals(ClientResponse.Status.SERVICE_UNAVAILABLE)){
+			} else if (status.equals(ClientResponse.Status.SERVICE_UNAVAILABLE)) {
 				throw new ServiceUnavailableException(response);
 			}
 		}
 	}
-	
-	protected abstract String getResourcePath();
-	protected abstract String getResourceCreationPath(); 
-	
-	//default implementations for create, update and delete operation on a resource.
-	//read operations are static methods within respective resource classes.
-	public void create() throws Exception{
-    	try{
-    		getWebResourceBuilder(getResourceCreationPath()).post(this);
-    	}
-    	catch(final UniformInterfaceException uie){
-    		throwStatusBasedException(uie.getResponse());
-    	}
-    }
-        
-    public void update() throws Exception{
-    	try{
-    		getWebResourceBuilder(getResourcePath()).put(this);
-    	}
-    	catch(final UniformInterfaceException uie){
-    		throwStatusBasedException(uie.getResponse());
-    	}
-    }
 
-    public void delete() throws Exception{
-    	try{
-    		getWebResourceBuilder(getResourcePath()).delete(this);
-    	}
-    	catch(final UniformInterfaceException uie){
-    		throwStatusBasedException(uie.getResponse());
-    	}
-    }
+	protected abstract String getResourcePath();
+	protected abstract String getResourceCreationPath();
+
+	// default implementations for create, update and delete operation on a resource.
+	// read operations are static methods within respective resource classes.
+	public void create() throws Exception {
+		try {
+			getWebResourceBuilder(getResourceCreationPath()).post(this);
+		} catch (final UniformInterfaceException uie) {
+			throwStatusBasedException(uie.getResponse());
+		}
+	}
+
+	public void update() throws Exception {
+		try {
+			getWebResourceBuilder(getResourcePath()).put(this);
+		} catch (final UniformInterfaceException uie) {
+			throwStatusBasedException(uie.getResponse());
+		}
+	}
+
+	public void delete() throws Exception {
+		try {
+			getWebResourceBuilder(getResourcePath()).delete(this);
+		} catch (final UniformInterfaceException uie) {
+			throwStatusBasedException(uie.getResponse());
+		}
+	}
 
 	/**
 	 * Delete with the option to pass an additional key value pair, that will be appended to the resource path

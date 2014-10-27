@@ -7,6 +7,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -15,13 +19,15 @@ import org.junit.Test;
 
 import com.kwanzoo.recurly.Account;
 import com.kwanzoo.recurly.Addon;
+import com.kwanzoo.recurly.Adjustment;
 import com.kwanzoo.recurly.Base;
 import com.kwanzoo.recurly.BillingInfo;
-import com.kwanzoo.recurly.Charge;
-import com.kwanzoo.recurly.CreditCard;
-import com.kwanzoo.recurly.InvoiceDetailed;
+import com.kwanzoo.recurly.Errors;
+import com.kwanzoo.recurly.Invoice;
 import com.kwanzoo.recurly.Invoices;
 import com.kwanzoo.recurly.Subscription;
+import com.kwanzoo.recurly.Subscriptions;
+import com.kwanzoo.recurly.exception.UnprocessableEntityException;
 
 public class RecurlyTest extends TestCase {
 
@@ -39,13 +45,18 @@ public class RecurlyTest extends TestCase {
 	}
 
 	@Override
-	public void setUp() {
+	public void setUp() throws SecurityException, IOException {
+
+		Handler fh = new FileHandler("/tmp/jersey_test.log");
+		Logger.getLogger("").addHandler(fh);
+		Logger.getLogger("com.sun.jersey").setLevel(Level.FINEST);
+
 		Properties p = new Properties();
 		try {
 			p.load(new FileInputStream(System.getProperty("user.home") + "/" + "recurly_auth"));
-			String username = p.getProperty("recurly_username");
-			String password = p.getProperty("recurly_password");
-			Base.setAuth(username, password);
+			String apiKey = p.getProperty("recurly_api_key");
+			String subdomain = p.getProperty("recurly_subdomain");
+			Base.setAuth(apiKey, subdomain);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -108,10 +119,48 @@ public class RecurlyTest extends TestCase {
 		assertEquals(email, account.email);
 		assertEquals(companyName, account.companyName);
 
-		Charge charge = new Charge(accountCode);
-		charge.amount_in_cents = 500;
+		Adjustment charge = new Adjustment(accountCode);
+		charge.unitAmountInCents = 500;
 		charge.description = "first charge";
+		charge.currency = "USD";
 		charge.create();
+
+		// add billing info to later add subscription
+		String number = "1";
+		String verificationValue = getRandNumber(3);
+		Integer expirationMonth = (new Random()).nextInt(12) + 1;
+		Integer expirationYear = 2012 + (new Random()).nextInt(20);
+		String address1 = getRandStr(10);
+		String city = "San Fransisco";
+		String state = "CA";
+		String zip = "20240";
+		String country = "US";
+		String ipAddress = "127.0.0.1";
+
+		BillingInfo billingInfo = new BillingInfo(accountCode);
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country = country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
+		billingInfo.update();
+
+		// check if adding subscription works
+		Subscription subscription = new Subscription(null, accountCode);
+		subscription.currency = "USD";
+		subscription.planCode = plan1;
+		subscription.unitAmountInCents = 123;
+		subscription.create();
+
+		Subscriptions subscriptions = Subscriptions.get(accountCode);
+		assertEquals(1, subscriptions.subscription.size());
 
 		// cleanup
 		account.delete();
@@ -158,13 +207,6 @@ public class RecurlyTest extends TestCase {
 		String country = "US";
 		String ipAddress = "127.0.0.1";
 
-		CreditCard creditCard = new CreditCard();
-
-		creditCard.number = number;
-		creditCard.verificationValue = verificationValue;
-		creditCard.expirationMonth = expirationMonth;
-		creditCard.expirationYear = expirationYear;
-
 		BillingInfo billingInfo = new BillingInfo(accountCode);
 		billingInfo.firstName = firstName;
 		billingInfo.lastName = lastName;
@@ -175,8 +217,10 @@ public class RecurlyTest extends TestCase {
 		billingInfo.zip = zip;
 		billingInfo.country = country;
 		billingInfo.ipAddress = ipAddress;
-		billingInfo.creditCard = creditCard;
-
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
 		billingInfo.update();
 
 		billingInfo = BillingInfo.get(accountCode);
@@ -195,8 +239,8 @@ public class RecurlyTest extends TestCase {
 		// assertEquals(billingInfo.creditCard.number);
 		// assertEquals(billingInfo.creditCard.verificationValue);
 
-		assertEquals(expirationMonth, billingInfo.creditCard.expirationMonth);
-		assertEquals(expirationYear, billingInfo.creditCard.expirationYear);
+		assertEquals(expirationMonth, billingInfo.month);
+		assertEquals(expirationYear, billingInfo.year);
 
 		// check if updating billing info of an account that already has billing info works
 		verificationValue = getRandNumber(3);
@@ -213,12 +257,6 @@ public class RecurlyTest extends TestCase {
 		country = "IN";
 		ipAddress = "127.0.0.1";
 
-		creditCard = new CreditCard();
-		creditCard.number = number;
-		creditCard.verificationValue = verificationValue;
-		creditCard.expirationMonth = expirationMonth;
-		creditCard.expirationYear = expirationYear;
-
 		billingInfo = new BillingInfo(accountCode);
 		billingInfo.firstName = firstName;
 		billingInfo.lastName = lastName;
@@ -229,7 +267,10 @@ public class RecurlyTest extends TestCase {
 		billingInfo.zip = zip;
 		billingInfo.country = country;
 		billingInfo.ipAddress = ipAddress;
-		billingInfo.creditCard = creditCard;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
 
 		billingInfo.checkedUpdate();
 
@@ -278,7 +319,7 @@ public class RecurlyTest extends TestCase {
 		final String number = "1";
 		final String verificationValue = getRandNumber(3);
 		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
-		final Integer expirationYear = 2011 + (new Random()).nextInt(20);
+		final Integer expirationYear = 2015 + (new Random()).nextInt(20);
 
 		firstName = account.firstName;
 		lastName = account.lastName;
@@ -291,12 +332,6 @@ public class RecurlyTest extends TestCase {
 		final String country = "US";
 		final String ipAddress = "127.0.0.1";
 
-		final CreditCard creditCard = new CreditCard();
-		creditCard.number = number;
-		creditCard.verificationValue = verificationValue;
-		creditCard.expirationMonth = expirationMonth;
-		creditCard.expirationYear = expirationYear;
-
 		BillingInfo billingInfo = new BillingInfo(accountCode);
 		billingInfo.firstName = firstName;
 		billingInfo.lastName = lastName;
@@ -307,24 +342,34 @@ public class RecurlyTest extends TestCase {
 		billingInfo.zip = zip;
 		billingInfo.country = country;
 		billingInfo.ipAddress = ipAddress;
-		billingInfo.creditCard = creditCard;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
 
 		account.billingInfo = billingInfo;
 
 		String planCode = plan2; // one of the plans defined in your recurly account
 		Integer quantity = 1;
 
-		Subscription subscription = new Subscription(accountCode);
-		subscription.account = account;
+		Subscription subscription = new Subscription();
+		subscription.account = new Account(accountCode);
+		subscription.account.billingInfo = billingInfo;
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
+		subscription.currency = "USD";
 
 		subscription.create();
 
-		// TODO: get subscription and check with asserts
-		subscription = Subscription.get(accountCode);
+		Subscriptions subscriptions = Subscriptions.get(accountCode);
 
-		assertEquals(accountCode, subscription.accountCode);
+		subscription = subscriptions.subscription.get(0);
+
+		assertEquals("USD", subscription.currency);
+		assertEquals(planCode, subscription.plan.planCode);
+		assertEquals(quantity, subscription.quantity);
+
+		assertNotNull(subscription.account);
 		assertEquals(planCode, subscription.plan.planCode);
 		assertEquals("active", subscription.state);
 		assertEquals(quantity, subscription.quantity);
@@ -344,34 +389,36 @@ public class RecurlyTest extends TestCase {
 		// assertEquals(billingInfo.creditCard.number);
 		// assertEquals(billingInfo.creditCard.verificationValue);
 
-		assertEquals(expirationMonth, billingInfo.creditCard.expirationMonth);
-		assertEquals(expirationYear, billingInfo.creditCard.expirationYear);
+		assertEquals(expirationMonth, billingInfo.month);
+		assertEquals(expirationYear, billingInfo.year);
 
 		// invoice check
 		Invoices invoices = Invoices.get(accountCode);
 		assertEquals(1, invoices.invoice.size());
 
-		// invoice check with pages
+		// invoice check with limit
 		invoices = Invoices.get(accountCode, 1);
 		assertEquals(1, invoices.invoice.size());
-		Invoices emptyInvoices = Invoices.get(accountCode, 2);
-		assertNull(emptyInvoices.invoice);
+		invoices = Invoices.get(accountCode, 2);
+		assertEquals(1, invoices.invoice.size());
 
 		// downgrade check
 
 		planCode = plan1; // a plan with lesser features/rate than testplan1
 		quantity = 2;
 
-		subscription = new Subscription(accountCode);
+		String uuid = subscription.uuid;
+
+		subscription = new Subscription(uuid, null);
 		subscription.timeframe = "now";
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
 
 		subscription.update();
 
-		subscription = Subscription.get(accountCode);
+		subscription = Subscription.get(uuid);
 
-		assertEquals(accountCode, subscription.accountCode);
+		assertNotNull(subscription.account);
 		assertEquals(planCode, subscription.plan.planCode);
 		assertEquals("active", subscription.state);
 		assertEquals(quantity, subscription.quantity);
@@ -385,29 +432,28 @@ public class RecurlyTest extends TestCase {
 		planCode = plan3; // a plan with better features/rate than testplan1
 		quantity = 3;
 
-		subscription = new Subscription(accountCode);
+		subscription = new Subscription(uuid, null);
 		subscription.timeframe = "now"; // immediate upgrade
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
 
 		subscription.update();
 
-		subscription = Subscription.get(accountCode);
+		subscription = Subscription.get(uuid);
 
-		assertEquals(accountCode, subscription.accountCode);
+		assertNotNull(subscription.account);
 		assertEquals(planCode, subscription.plan.planCode);
 		assertEquals("active", subscription.state);
 		assertEquals(quantity, subscription.quantity);
 
-		// invoice check
+		// invoice list check
 		invoices = Invoices.get(accountCode);
 		assertEquals(3, invoices.invoice.size());
 
-		// detailed invoice check
-		InvoiceDetailed invoiceDetailed = InvoiceDetailed.get(invoices.invoice.get(2).id);
-		assertEquals(invoices.invoice.get(2).id, invoiceDetailed.id);
-		assertEquals(1, invoiceDetailed.payment.size());
-		assertEquals(1, invoiceDetailed.line_item.size());
+		// invoice check
+		Invoice invoice = invoices.invoice.get(2);
+		assertEquals(1, invoice.transactions.size());
+		assertEquals(1, invoice.lineItems.size());
 
 		// addon check
 
@@ -422,7 +468,7 @@ public class RecurlyTest extends TestCase {
 		List<Addon> addons = new ArrayList<Addon>();
 		addons.add(addon);
 
-		subscription = new Subscription(accountCode);
+		subscription = new Subscription(uuid, null);
 		subscription.timeframe = "now"; // immediate upgrade
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
@@ -430,9 +476,9 @@ public class RecurlyTest extends TestCase {
 
 		subscription.update();
 
-		subscription = Subscription.get(accountCode);
+		subscription = Subscription.get(uuid);
 
-		assertEquals(accountCode, subscription.accountCode);
+		assertNotNull(subscription.account);
 		assertEquals(planCode, subscription.plan.planCode);
 		assertEquals("active", subscription.state);
 		assertEquals(quantity, subscription.quantity);
@@ -443,15 +489,16 @@ public class RecurlyTest extends TestCase {
 
 		// cancel & check with asserts
 
-		subscription = new Subscription(accountCode);
+		subscription = new Subscription(uuid, null);
 		subscription.delete();
 
-		subscription = Subscription.get(accountCode);
+		subscription = Subscription.get(uuid);
 		assertEquals("canceled", subscription.state);
 
 		account.delete();
 	}
 
+	@Test
 	public void test4() throws Exception {
 		// create account with subscription, terminate subscription without refund, create new subscription for same
 		// account
@@ -491,11 +538,104 @@ public class RecurlyTest extends TestCase {
 		final String country = "US";
 		final String ipAddress = "127.0.0.1";
 
-		final CreditCard creditCard = new CreditCard();
-		creditCard.number = number;
-		creditCard.verificationValue = verificationValue;
-		creditCard.expirationMonth = expirationMonth;
-		creditCard.expirationYear = expirationYear;
+		BillingInfo billingInfo = new BillingInfo(accountCode);
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country = country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
+
+		account.billingInfo = billingInfo;
+
+		String planCode = plan1; // one of the plans defined in your recurly account
+		Integer quantity = 1;
+
+		Subscription subscription = new Subscription();
+		subscription.account = new Account(accountCode);
+		subscription.account.billingInfo = billingInfo;
+		subscription.planCode = planCode;
+		subscription.quantity = quantity;
+		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (45L * 24L * 60L * 60L * 1000L));
+		subscription.currency = "USD";
+
+		subscription.create();
+
+		Subscriptions subscriptions = Subscriptions.get(accountCode);
+		Date trialEndDate1 = subscriptions.subscription.get(0).trialEndsAt;
+
+		subscriptions.subscription.get(0).delete("refund", "none");
+
+		try {
+			Subscription.get(accountCode);
+			fail("Exception should be thrown, since subscription is not existing.");
+		} catch (Exception e) {
+			// ignore
+		}
+
+		subscription = new Subscription();
+		subscription.account = account;
+		subscription.planCode = planCode;
+		subscription.quantity = quantity;
+		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (30L * 24L * 60L * 60L * 1000L));
+		subscription.currency = "USD";
+		subscription.create();
+
+		subscriptions = Subscriptions.get(accountCode);
+
+		assertNotNull(subscriptions);
+		assertTrue(subscriptions.subscription.get(0).trialEndsAt.before(trialEndDate1));
+
+		// test delete & reopen
+		account.delete();
+
+		// test reopen
+		account.reopen();
+
+		// cleanup
+		account.delete();
+
+	}
+
+	@Test
+	public void test5() throws Exception {
+		// create fresh account
+		final String accountCode = getRandStr(5);
+		String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName = getRandStr(5);
+		String email = getRandStr(5) + "@site.com";
+		String companyName = getRandStr(5);
+
+		Account account = new Account();
+
+		account.accountCode = accountCode;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
+		account.companyName = companyName;
+
+		// subscribe to plan1
+		final String number = "4000-0000-0000-0002";
+		final String verificationValue = getRandNumber(3);
+		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
+		final Integer expirationYear = 2015 + (new Random()).nextInt(20);
+
+		final String address1 = getRandStr(10);
+		final String address2 = getRandStr(10);
+		final String city = "San Fransisco";
+		final String state = "NM";
+		final String zip = "99546";
+		final String country = "US";
+		final String ipAddress = "127.0.0.1";
 
 		BillingInfo billingInfo = new BillingInfo(accountCode);
 		billingInfo.firstName = firstName;
@@ -507,48 +647,98 @@ public class RecurlyTest extends TestCase {
 		billingInfo.zip = zip;
 		billingInfo.country = country;
 		billingInfo.ipAddress = ipAddress;
-		billingInfo.creditCard = creditCard;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
 
 		account.billingInfo = billingInfo;
 
 		String planCode = plan1; // one of the plans defined in your recurly account
 		Integer quantity = 1;
 
-		Subscription subscription = new Subscription(accountCode);
+		Subscription subscription = new Subscription();
 		subscription.account = account;
+		subscription.account.billingInfo = billingInfo;
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
 		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (45L * 24L * 60L * 60L * 1000L));
-
-		subscription.create();
-
-		subscription = Subscription.get(accountCode);
-		Date trialEndDate1 = subscription.trialEndsAt;
-
-		subscription.delete("refund", "none");
+		subscription.currency = "USD";
 
 		try {
-			Subscription.get(accountCode);
-			fail("Exception should be thrown, since subscription is not existing.");
-		} catch (Exception e) {
-			// ignore
+			subscription.create();
+		} catch (UnprocessableEntityException e) {
+			Errors errors = e.getResponse().getEntity(Errors.class);
+			assertEquals("subscription.account.base", errors.error.get(0).field);
+			assertEquals("declined", errors.error.get(0).symbol);
+			assertEquals("Your transaction was declined. Please use a different card or contact your bank.",
+					errors.error.get(0).error);
 		}
+	}
 
-		subscription = new Subscription(accountCode);
+	@Test
+	public void test6() throws Exception {
+
+		// create fresh account via subscription with success
+		final String accountCode = getRandStr(5);
+		String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName = getRandStr(5);
+		String email = getRandStr(5) + "@site.com";
+		String companyName = getRandStr(5);
+
+		Account account = new Account();
+
+		account.accountCode = accountCode;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
+		account.companyName = companyName;
+
+		// subscribe to plan1
+		final String number = "4111-1111-1111-1111";
+		final String verificationValue = getRandNumber(3);
+		final Integer expirationMonth = (new Random()).nextInt(11) + 1;
+		final Integer expirationYear = 2015 + (new Random()).nextInt(20);
+
+		final String address1 = getRandStr(10);
+		final String address2 = getRandStr(10);
+		final String city = "San Fransisco";
+		final String state = "NM";
+		final String zip = "99546";
+		final String country = "US";
+		final String ipAddress = "127.0.0.1";
+
+		BillingInfo billingInfo = new BillingInfo(accountCode);
+		billingInfo.firstName = firstName;
+		billingInfo.lastName = lastName;
+		billingInfo.address1 = address1;
+		billingInfo.address2 = address2;
+		billingInfo.city = city;
+		billingInfo.state = state;
+		billingInfo.zip = zip;
+		billingInfo.country = country;
+		billingInfo.ipAddress = ipAddress;
+		billingInfo.number = number;
+		billingInfo.verificationValue = verificationValue;
+		billingInfo.month = expirationMonth;
+		billingInfo.year = expirationYear;
+
+		account.billingInfo = billingInfo;
+
+		String planCode = plan1; // one of the plans defined in your recurly account
+		Integer quantity = 1;
+
+		Subscription subscription = new Subscription();
 		subscription.account = account;
+		subscription.account.billingInfo = billingInfo;
 		subscription.planCode = planCode;
 		subscription.quantity = quantity;
-		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (30L * 24L * 60L * 60L * 1000L));
+		subscription.trialEndsAt = new Date(new Date().getTime() + (long) (45L * 24L * 60L * 60L * 1000L));
+		subscription.currency = "USD";
+
 		subscription.create();
-
-		subscription = Subscription.get(accountCode);
-
-		assertNotNull(Subscription.get(accountCode));
-		assertTrue(subscription.trialEndsAt.before(trialEndDate1));
-
-		// cleanup
-		account.delete();
-
 	}
 
 }
