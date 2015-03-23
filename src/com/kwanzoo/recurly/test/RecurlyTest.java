@@ -18,6 +18,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 
 import com.kwanzoo.recurly.Account;
+import com.kwanzoo.recurly.AccountResponse;
 import com.kwanzoo.recurly.Addon;
 import com.kwanzoo.recurly.Adjustment;
 import com.kwanzoo.recurly.Base;
@@ -739,6 +740,79 @@ public class RecurlyTest extends TestCase {
 		subscription.currency = "USD";
 
 		subscription.create();
+	}
+
+	// Check account response with hosted_login_token parameter that cannot be posted again
+	@Test
+	public void testAccountResponse() throws Exception {
+
+		// create fresh account
+		final String accountCode = getRandStr(5);
+		String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName = getRandStr(5);
+		String email = getRandStr(5) + "@site.com";
+		String companyName = getRandStr(5);
+
+		Account account = new Account();
+
+		account.accountCode = accountCode;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
+		account.companyName = companyName;
+
+		account.create();
+
+		// check if find works
+		AccountResponse accountResponse = AccountResponse.get(accountCode);
+
+		assertEquals(accountCode, accountResponse.accountCode);
+		assertEquals(username, accountResponse.username);
+		assertEquals(firstName, accountResponse.firstName);
+		assertEquals(lastName, accountResponse.lastName);
+		assertEquals(email, accountResponse.email);
+		assertEquals(companyName, accountResponse.companyName);
+		assertNotNull(accountResponse.hostedLoginToken);
+
+		// cleanup
+		accountResponse.delete();
+	}
+
+	// Check modification with account response object
+	@Test
+	public void testAccountResponseModification() {
+
+		// create fresh account
+		final String accountCode = getRandStr(5);
+		String username = getRandStr(5);
+		String firstName = getRandStr(5);
+		String lastName = getRandStr(5);
+		String email = getRandStr(5) + "@site.com";
+		String companyName = getRandStr(5);
+
+		AccountResponse account = new AccountResponse();
+
+		account.accountCode = accountCode;
+		account.username = username;
+		account.firstName = firstName;
+		account.lastName = lastName;
+		account.email = email;
+		account.companyName = companyName;
+
+		try {
+			account.create();
+			fail("UnsupportedOperationException expected");
+		} catch (Exception e) {
+		}
+
+		try {
+			account.update();
+			fail("UnsupportedOperationException expected");
+		} catch (Exception e) {
+		}
+
 	}
 
 }
