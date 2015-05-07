@@ -3,12 +3,12 @@ package com.kwanzoo.recurly;
 import java.util.Date;
 import java.util.List;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.core.GenericType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "subscription")
 public class Subscription extends Base {
@@ -82,8 +82,8 @@ public class Subscription extends Base {
 	public static Subscription get(final String subscriptionUuid) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(subscriptionUuid)).get(new GenericType<Subscription>() {});
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}
@@ -91,21 +91,20 @@ public class Subscription extends Base {
 	@Override
 	public void delete(String paramKey, String paramValue) throws Exception {
 		try {
-			getWebResourceBuilder(getResourceDeletionPath(), paramKey, paramValue).put(this);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+			getWebResourceBuilder(getResourceDeletionPath(), paramKey, paramValue).put(Entity.xml(this));
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 		}
 	}
 
 	@Override
 	public void delete() throws Exception {
 		try {
-			getWebResourceBuilder(getResourceCancelPath()).put(this);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+			getWebResourceBuilder(getResourceCancelPath()).put(Entity.xml(this));
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 		}
 	}
-
 	private String getResourceDeletionPath() {
 		return pluralResourceName + "/" + (uuidInternal != null ? uuidInternal : uuid) + "/terminate";
 	}

@@ -1,5 +1,10 @@
 package com.kwanzoo.recurly.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,9 +17,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import junit.framework.TestCase;
-
 import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.kwanzoo.recurly.Account;
@@ -23,14 +27,12 @@ import com.kwanzoo.recurly.Addon;
 import com.kwanzoo.recurly.Adjustment;
 import com.kwanzoo.recurly.Base;
 import com.kwanzoo.recurly.BillingInfo;
-import com.kwanzoo.recurly.Errors;
 import com.kwanzoo.recurly.Invoice;
 import com.kwanzoo.recurly.Invoices;
 import com.kwanzoo.recurly.Subscription;
 import com.kwanzoo.recurly.Subscriptions;
-import com.kwanzoo.recurly.exception.UnprocessableEntityException;
 
-public class RecurlyTest extends TestCase {
+public class RecurlyTest {
 
 	private String plan1 = "test_plan1";
 	private String plan2 = "test_plan2";
@@ -45,7 +47,7 @@ public class RecurlyTest extends TestCase {
 		return RandomStringUtils.randomNumeric(n);
 	}
 
-	@Override
+	@Before
 	public void setUp() throws SecurityException, IOException {
 
 		Handler fh = new FileHandler("/tmp/jersey_test.log");
@@ -668,12 +670,9 @@ public class RecurlyTest extends TestCase {
 
 		try {
 			subscription.create();
-		} catch (UnprocessableEntityException e) {
-			Errors errors = e.getResponse().getEntity(Errors.class);
-			assertEquals("subscription.account.base", errors.error.get(0).field);
-			assertEquals("declined", errors.error.get(0).symbol);
-			assertEquals("Your transaction was declined. Please use a different card or contact your bank.",
-					errors.error.get(0).error);
+			fail("Expecting subscription creation to fail");
+		} catch (Exception e) {
+			assertEquals("Request resulted in HTTP response code: 422", e.getMessage());
 		}
 	}
 

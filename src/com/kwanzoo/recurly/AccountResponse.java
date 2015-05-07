@@ -1,10 +1,9 @@
 package com.kwanzoo.recurly;
 
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.core.GenericType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 /**
  * Response class for {@link Account} objects. Required since request class {@link Account} may not contain
@@ -50,8 +49,8 @@ public class AccountResponse extends Base {
 	public static AccountResponse get(final String accountCode) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode)).get(new GenericType<AccountResponse>() {});
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}

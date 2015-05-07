@@ -1,11 +1,11 @@
 package com.kwanzoo.recurly.exception;
 
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.core.Response;
 
 public class PreconditionFailedException extends Base{
 	private static final long serialVersionUID = 1L;
 
-	public PreconditionFailedException(final ClientResponse response){
+	public PreconditionFailedException(final Response response) {
 		super(response);
 	}
 }

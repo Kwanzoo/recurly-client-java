@@ -1,10 +1,10 @@
 package com.kwanzoo.recurly;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.core.GenericType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "account")
 public class Account extends Base {
@@ -43,8 +43,8 @@ public class Account extends Base {
 	public static Account get(final String accountCode) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode)).get(new GenericType<Account>() {});
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}
@@ -68,9 +68,9 @@ public class Account extends Base {
 
 	public void reopen() throws Exception {
 		try {
-			getWebResourceBuilder(getResourceReopenPath()).put(this);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+			getWebResourceBuilder(getResourceReopenPath()).put(Entity.xml(this));
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 		}
 	}
 

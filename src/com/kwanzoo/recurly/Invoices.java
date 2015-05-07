@@ -2,10 +2,9 @@ package com.kwanzoo.recurly;
 
 import java.util.List;
 
+import javax.ws.rs.client.ResponseProcessingException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "invoices")
 public class Invoices extends Base {
@@ -37,8 +36,8 @@ public class Invoices extends Base {
 	public static Invoices get(final String accountCode) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode)).get(Invoices.class);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}
@@ -46,8 +45,8 @@ public class Invoices extends Base {
 	public static Invoices get(final String accountCode, final int limit) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode), "per_page", limit + "").get(Invoices.class);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}

@@ -1,12 +1,12 @@
 package com.kwanzoo.recurly;
 
 import javax.security.auth.login.AccountNotFoundException;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.core.GenericType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.kwanzoo.recurly.exception.ResourceNotFoundException;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "billing_info")
 public class BillingInfo extends Base {
@@ -90,8 +90,8 @@ public class BillingInfo extends Base {
 	public static BillingInfo get(final String accountCode) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode)).get(new GenericType<BillingInfo>() {});
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}

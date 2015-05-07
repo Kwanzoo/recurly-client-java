@@ -19,11 +19,11 @@ Just add the latest jar(under [dist/](https://github.com/thobach/recurly-client-
 Dependencies
 ------------
 
-This wrapper relies on the excellent [Jersey REST client API](https://jersey.dev.java.net/)
+This wrapper relies on the excellent [Jersey 2 REST client API](https://jersey.dev.java.net/)
 
 Developed By
 -------------
 
 The initial code was developed by Manoj Mathai, GSLab, for Kwanzoo Inc.
 
-The Transparent Post API, Recurly API v2 and Recurly JS support and further API integration was done by Thomas Bachmann, Mambu GmbH.
+The Transparent Post API, Recurly API v2, Recurly JS support, further API integration and migration to Jersey 2 was done by Thomas Bachmann, Mambu GmbH.

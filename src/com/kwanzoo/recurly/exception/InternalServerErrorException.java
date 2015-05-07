@@ -1,11 +1,11 @@
 package com.kwanzoo.recurly.exception;
 
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.core.Response;
 
 public class InternalServerErrorException extends Base{
 	private static final long serialVersionUID = 1L;
 
-	public InternalServerErrorException(final ClientResponse response){
+	public InternalServerErrorException(final Response response) {
 		super(response);
 	}
 }

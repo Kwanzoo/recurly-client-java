@@ -3,11 +3,10 @@ package com.kwanzoo.recurly;
 import java.util.Date;
 import java.util.List;
 
+import javax.ws.rs.client.ResponseProcessingException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "invoice")
 public class Invoice extends Base {
@@ -91,8 +90,8 @@ public class Invoice extends Base {
 	public static Invoice get(final String invoiceId) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(invoiceId)).get(Invoice.class);
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}

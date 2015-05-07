@@ -2,12 +2,11 @@ package com.kwanzoo.recurly;
 
 import java.util.Date;
 
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.core.GenericType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 
 @XmlRootElement(name = "transaction")
 public class Transaction extends Base {
@@ -84,8 +83,8 @@ public class Transaction extends Base {
 	public static Transaction get(final String accountCode) throws Exception {
 		try {
 			return getWebResourceBuilder(getResourcePath(accountCode)).get(new GenericType<Transaction>() {});
-		} catch (final UniformInterfaceException uie) {
-			throwStatusBasedException(uie.getResponse());
+		} catch (final ResponseProcessingException rpe) {
+			throwStatusBasedException(rpe.getResponse());
 			return null;
 		}
 	}
